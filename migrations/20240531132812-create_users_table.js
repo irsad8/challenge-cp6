@@ -1,17 +1,19 @@
-const { DataTypes } = require('sequelize');
-const db = require('../config/database');
+'use strict';
 
-const Users = db.define('users', {
-    uuid:{
-        type: DataTypes.STRING,
-        defaultValue: DataTypes.UUIDV4,
+/** @type {import('sequelize-cli').Migration} */
+module.exports = {
+  async up (queryInterface, Sequelize) {
+    await queryInterface.createTable('users',{
+      uuid:{
+        type: Sequelize.STRING,
+        defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         validate:{
             notEmpty:true
         }
     },
     name:{
-        type: DataTypes.STRING,
+        type: Sequelize.STRING,
         allowNull: false,
         validate:{
             notEmpty:true,
@@ -19,7 +21,7 @@ const Users = db.define('users', {
         }
     },
     email:{
-        type: DataTypes.STRING,
+        type: Sequelize.STRING,
         allowNull: false,
         validate:{
             notEmpty:true,
@@ -27,24 +29,23 @@ const Users = db.define('users', {
         }
     },
     password:{
-        type: DataTypes.STRING,
+        type: Sequelize.STRING,
         allowNull: false,
         validate:{
             notEmpty:true,
         }
     },
     role:{
-        type: DataTypes.STRING,
+        type: Sequelize.STRING,
         allowNull: false,
         validate:{
             notEmpty:true,
         }
     }
-},{
-    freezeTableName:true
-});
+    })
+  },
 
-
-
-module.exports = Users;
-
+  async down (queryInterface, Sequelize) {
+    await queryInterface.dropTable('users');
+  }
+};

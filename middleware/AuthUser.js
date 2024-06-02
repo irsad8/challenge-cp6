@@ -1,4 +1,5 @@
 const Users = require('../models/UserModel');
+const jwt = require('jsonwebtoken');
 
 const verifyUser = async (req, res, next) => {
     if (!req.session.userId){
@@ -26,4 +27,16 @@ const adminOnly = async (req, res, next) => {
     next();
 }
 
-module.exports = {verifyUser, adminOnly};
+const verifikasi = (req, res, next) => {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    console.log(token)
+    if(token == null) return res.sendStatus(401);
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECREAT, (err, decoded) => {
+        if(err) return res.sendStatus(403);
+        req.email = decoded.email;
+        next();
+    })
+}
+
+module.exports = {verifyUser, adminOnly, verifikasi};
