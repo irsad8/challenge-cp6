@@ -7,7 +7,7 @@ const fs = require('fs')
 const getCars = async (req, res) => {
     try {
         let response;
-        if (req.role === "admin"){
+        if (req.user.role === "admin"){
             response = await Cars.findAll({
                 attributes: ['uuid', 'name', 'price','image','is_deleted'],
                 include:[{
@@ -67,7 +67,7 @@ const getCarById = async (req, res) => {
         });
         if (!car) return res.status(404).json({msg: "data tidak ditemukan"});
         let response;
-        if (req.role === "admin"){
+        if (req.user.role === "admin"){
             response = await Cars.findOne({
                 attributes: ['uuid', 'name', 'price','image','is_deleted'],
                 where:{
@@ -172,7 +172,7 @@ const updateCar = async(req, res) => {
 
     const {name, price} = req.body;
     try {
-        if(req.role === "admin" || req.userId === car.userId){
+        if(req.user.role === "admin" || req.user.id === car.userId){
             await Cars.update({
                 name : name,
                 price : price,
@@ -201,7 +201,7 @@ const deleteCar = async(req, res) => {
     if (!car)return res.status(522).json({msg: "data not found"})
 
     try {
-        if(req.role === "admin" || req.userId === car.userId){
+        if(req.user.role === "admin" || req.user.id === car.userId){
             await Cars.update({
                 is_deleted : 1,
                 deletedBy : req.userId

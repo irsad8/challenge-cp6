@@ -2,7 +2,8 @@ const express = require('express');
 const {
     Login,
     Me,
-    Logout
+    Logout,
+    refreshToken
 } = require('../controllers/Auth');
 const {verifyUser, adminOnly, verifikasi } = require('../middleware/AuthUser');
 

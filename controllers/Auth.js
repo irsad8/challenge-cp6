@@ -1,5 +1,7 @@
 const Users = require('../models/UserModel');
 const argon2 = require('argon2');
+const jwt = require('jsonwebtoken');
+
 
 const Login = async(req, res,)=>{
     const user = await Users.findOne({
@@ -10,19 +12,27 @@ const Login = async(req, res,)=>{
     if(!user) return res.status(404).json({msg: "user tidak ditemukan"});
     const match = await argon2.verify(user.password, req.body.password);
     if (!match) return res.status(400).json({msg: "password tidak sesuai"});
-    req.session.userId = user.uuid;
-    const {uuid, name, email, role} = user;
-    res.status(200).json({uuid, name, email, role});
+    const accessToken = jwt.sign({id : user.id, role: user.role},process.env.ACCESS_TOKEN_SECREAT,{expiresIn:'15m'});
+    const refreshToken = jwt.sign({id : user.id, role: user.role},process.env.REFRESH_TOKEN_SECREAT,{expiresIn:'1d'});
+    await Users.update({refresh_token: refreshToken},{
+            where: {
+                id : user.id
+            }
+        })
+    res.cookie('refreshToken', refreshToken,{
+        httpOnly : true,
+        maxAge: 24*60*60,
+        secure: 'auto'
+    })
+    res.status(200).json(accessToken);
 }
 
 const Me = async (req, res)=> {
-    if (!req.session.userId){
-        return res.status(401).json({msg: "login ke akun anda telebih dahulu!"});
-    }
+    const userId = req.user.id;
     const user = await Users.findOne({
         attributes : ['uuid','name','email', 'role'],
         where: {
-            uuid: req.session.userId
+            id: req.user.id
         }
     });
     if(!user) return res.status(404).json({msg: "User tidak ditemukan"});
@@ -30,10 +40,38 @@ const Me = async (req, res)=> {
 }
 
 const Logout = async(req,res)=>{
-    req.session.destroy((err) => {
-        if (err) return res.status(400).json({msg: "Tidak dapat logout"});
-        res.status(200).json({msg: "Anda telah logout"});
-    });
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) return res.sendStatus(204);
+
+    const user = await UserModel.findOne({
+            where: { refresh_token: refreshToken },
+        });
+        if (!user) return res.sendStatus(204);
+
+        await user.update({refresh_token: refreshToken},{
+            where: {
+                id : user.id
+            }
+        });
+
+        res.clearCookie('refreshToken');
+        res.sendStatus(200);
 }
 
-module.exports = {Login, Me, Logout};
+const refreshToken = async(req,res)=>{
+    const refreshToken = req.cookies.refreshToken;
+    if(refreshToken) return res.status(401).json({msg: "login terlebih dahulu"})
+
+    const user = await Users.findOne({
+        where: {refresh_token : refreshToken}
+    })
+    if(!user) return res.status(403).json({msg: "user tidak ditemukan"});
+
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECREAT, (err, decoded)=>{
+        if (err) return res.status(403).json({msg : error.message});
+        const accessToken = jwt.sign({id : user.id, role: user.role},process.env.ACCESS_TOKEN_SECREAT,{expiresIn:'15m'});
+        res.json({accessToken});
+    })
+}
+
+module.exports = {Login, Me, Logout, refreshToken};

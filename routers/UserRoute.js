@@ -10,10 +10,10 @@ const {verifyUser,adminOnly, verifikasi} = require('../middleware/AuthUser');
 
 const router = express.Router();
 
-router.get('/users', verifyUser,adminOnly, getUsers); //kurang verifikasi
-router.get('/users/:id',verifyUser,adminOnly, getUserById); //kurang verifikasi
-router.post('/users',verifyUser, adminOnly, createUser); //kurang verifikasi
-router.patch('/users/:id',verifyUser,adminOnly, updateUser); //kurang verifikasi
-router.delete('/users/:id',verifyUser, adminOnly, deleteUser); //kurang verifikasi
+router.get('/users', verifikasi,adminOnly, getUsers); //kurang verifikasi
+router.get('/users/:id',verifikasi,adminOnly, getUserById); //kurang verifikasi
+router.post('/users',verifikasi, adminOnly, createUser); //kurang verifikasi
+router.patch('/users/:id',verifikasi,adminOnly, updateUser); //kurang verifikasi
+router.delete('/users/:id',verifikasi, adminOnly, deleteUser); //kurang verifikasi
 
 module.exports = router;
