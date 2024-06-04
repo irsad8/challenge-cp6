@@ -31,7 +31,7 @@ const getCars = async (req, res) => {
             response = await Cars.findAll({
                 attributes: ['uuid', 'name', 'price','image','is_deleted'],
                 where: {
-                    userId : req.userId
+                    userId : req.user.id
                 },
                 include:[
                 {
@@ -95,7 +95,7 @@ const getCarById = async (req, res) => {
             response = await Cars.findOne({
                 attributes: ['uuid', 'name', 'price','image','is_deleted'],
                 where: {
-                    [Op.and]: [{id: car.id},{userId: req.userId}]
+                    [Op.and]: [{id: car.id},{userId: req.user.id}]
                 },
                 include:[
                 {
